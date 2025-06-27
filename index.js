@@ -19,6 +19,8 @@ app.post('/api/leetcode-problems', async (req, res) => {
   const leetcode = new LeetCode();
   try {
     let problems = await leetcode.problems({});
+    console.log(problems.length())
+
     if (!Array.isArray(problems)) {
       if (typeof problems === 'object' && problems !== null && Array.isArray(problems.stat_status_pairs)) {
         problems = problems.stat_status_pairs;
@@ -29,6 +31,8 @@ app.post('/api/leetcode-problems', async (req, res) => {
         if (firstArray) problems = firstArray;
       }
     }
+    console.log(problems.length())
+
     const { topics, count } = req.body || {};
     let filtered = problems;
     if (topics && Array.isArray(topics) && topics.length > 0) {
@@ -44,9 +48,26 @@ app.post('/api/leetcode-problems', async (req, res) => {
           )
       );
     }
+    console.log(problems.length())
+
+    // Shuffle the filtered problems for randomness
+    for (let i = filtered.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
+    }
+    console.log(problems.length())
+
     if (count && typeof count === 'number') {
       filtered = filtered.slice(0, count);
     }
+    console.log(problems.length())
+
+    // If no problems found, return an error
+    if (!filtered || filtered.length === 0) {
+      return res.status(400).json({ error: 'No problems found for selected tags.' });
+    }
+    console.log(problems.length())
+
     res.status(200).json({ problems: filtered });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch problems', details: err.message });
